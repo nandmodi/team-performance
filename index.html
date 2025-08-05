@@ -7,490 +7,716 @@
   <link rel="icon" href="https://spyne-prod-ai.s3.us-east-1.amazonaws.com/ai-dataset/2025/favicon.ico" type="image/x-icon" />
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f9fa;
-      margin: 0;
-      padding: 20px;
-    }
+    /* Same CSS as previously provided but removed .stats-summary and .stat-box styles */
 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      color: #2c3e50;
+      margin: 0;
+      padding: 5px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+      padding: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+    .container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(90deg, #3498db, #2ecc71, #e74c3c, #f39c12);
+      border-radius: 20px 20px 0 0;
+    }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      margin: 1px 0 1px;
       color: #2c3e50;
-      font-size: 28px;
-      font-weight: 600;
+      font-size: 32px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
     }
-
+    h1::after {
+      content: "";
+      display: block;
+      width: 100px;
+      height: 4px;
+      background: linear-gradient(90deg, #3498db, #2ecc71);
+      margin: 10px auto;
+      border-radius: 2px;
+    }
     .filters {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 15px;
-      gap: 15px;
+      margin-bottom: 25px;
+      gap: 20px;
       flex-wrap: wrap;
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     }
-
-    .filters div {
+    .filters > div {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      font-size: 14px;
-      width: 200px;
+      gap: 8px;
+      font-size: 15px;
+      flex: 1;
+      min-width: 200px;
     }
-
+    .filters label {
+      font-weight: 600;
+      color: #34495e;
+      font-size: 14px;
+    }
     .filters input,
     .filters select,
     .filters button {
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      box-sizing: border-box;
+      padding: 12px 15px;
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      font-size: 15px;
+      background: white;
+      transition: all 0.3s ease;
     }
-
+    .filters input:focus,
+    .filters select:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      outline: none;
+    }
     .filters button {
-      background-color: #3498db;
+      background: linear-gradient(to right, #3498db, #2980b9);
       color: white;
       cursor: pointer;
-      padding: 8px 15px;
-      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      padding: 12px 25px;
+      font-size: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+      transition: all 0.3s ease;
+      height: 42px;
+      align-self: flex-end;
     }
-
     .filters button:hover {
-      background-color: #2980b9;
+      background: linear-gradient(to right, #2980b9, #2573a7);
+      box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+      transform: translateY(-2px);
     }
-
     .dropdown-container {
       position: relative;
     }
-
     .dropdown-button {
-      background-color: #1a1f2e;
+      background: linear-gradient(to right, #1a1f2e, #2c3e50);
       color: white;
       padding: 12px 20px;
-      border: 1px solid #444;
-      border-radius: 6px;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 16px;
-      width: 220px;
+      width: 100%;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
-
+    .dropdown-button::after {
+      content: "▼";
+      font-size: 12px;
+      transition: transform 0.3s ease;
+    }
+    .dropdown-container.active .dropdown-button::after {
+      transform: rotate(180deg);
+    }
     .dropdown-menu {
       display: none;
       position: absolute;
       background-color: #fff;
       color: #000;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
       padding: 15px;
-      z-index: 1000;
-      max-height: 300px;
+      z-index: 100;
+      max-height: 350px;
       overflow-y: auto;
       width: 100%;
       left: 0;
-      top: 50px;
-      transform: translateY(5px);
+      top: 60px;
+      border: 1px solid #e2e8f0;
     }
-
-    .dropdown-menu label {
+    .dropdown-container.active .dropdown-menu {
       display: block;
-      padding: 6px 10px;
-      cursor: pointer;
-      text-align: left;
+      animation: fadeIn 0.3s ease;
     }
-
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-menu label {
+      display: flex;
+      padding: 10px;
+      cursor: pointer;
+      align-items: center;
+      transition: background 0.2s ease;
+      border-radius: 6px;
+    }
+    .dropdown-menu label:hover {
+      background: #f1f5f9;
+    }
     #nameCount {
       font-weight: bold;
-      color: #2c3e50;
+      color: #3498db;
       margin-left: 10px;
+      font-size: 15px;
     }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      margin-top: 20px;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    th, td {
-      padding: 12px;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-
-    th {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-
-    th:hover {
-      background-color: #2980b9;
-    }
-
-    tbody tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-
-    tbody tr:hover {
-      background-color: #dfe6e9;
-    }
-
     .cards-row {
       display: flex;
       justify-content: space-between;
       margin-top: 30px;
       gap: 20px;
+      flex-wrap: wrap;
     }
-
     .card {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      width: 30%;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background: linear-gradient(to bottom right, #ffffff, #f8fafc);
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      flex: 1;
+      min-width: 250px;
+      transition: all 0.4s ease;
+      border: 1px solid #edf2f7;
+      position: relative;
+      overflow: hidden;
     }
-
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: #3498db;
+    }
+    .card:nth-child(1)::before { background: #3498db; }
+    .card:nth-child(2)::before { background: #2ecc71; }
+    .card:nth-child(3)::before { background: #e74c3c; }
+    .card:nth-child(4)::before { background: #f39c12; }
     .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
     }
-
     .card h3 {
       font-size: 18px;
       margin-bottom: 20px;
       color: #2c3e50;
-      font-weight: 600;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
     }
-
+    .card h3::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3498db;
+      margin-right: 10px;
+    }
+    .card:nth-child(1) h3::before { background: #3498db; }
+    .card:nth-child(2) h3::before { background: #2ecc71; }
+    .card:nth-child(3) h3::before { background: #e74c3c; }
+    .card:nth-child(4) h3::before { background: #f39c12; }
     .card .name-value {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 1px;
+      padding-bottom: 1px;
+      border-bottom: 1px dashed #e2e8f0;
+      align-items: center;
     }
-
+    .card .name-value:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
     .card .name-value .name {
-      font-weight: bold;
+      font-weight: 600;
       color: #34495e;
+      font-size: 15px;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-
     .card .name-value .value {
       color: #2980b9;
+      font-weight: 700;
+      font-size: 16px;
+      background: #f0f7ff;
+      padding: 5px 12px;
+      border-radius: 20px;
+      min-width: 80px;
+      text-align: right;
     }
-
+    .card:nth-child(1) .name-value .value { background: #e1f0fa; color: #2980b9; }
+    .card:nth-child(2) .name-value .value { background: #e6f7ee; color: #27ae60; }
+    .card:nth-child(3) .name-value .value { background: #fbeaea; color: #c0392b; }
+    .card:nth-child(4) .name-value .value { background: #fef5e6; color: #d35400; }
     .card ul {
       list-style-type: none;
       padding-left: 0;
       margin: 0;
     }
-
     .card ul li {
       font-size: 16px;
       color: #34495e;
-      margin-bottom: 12px;
-      padding: 6px 0;
-      border-bottom: 1px solid #ecf0f1;
+      margin-bottom: 15px;
+      padding: 8px 0;
+      border-bottom: 1px solid #edf2f7;
+      display: flex;
+      justify-content: space-between;
     }
-
     .card ul li:last-child {
       border-bottom: none;
+      margin-bottom: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: white;
+      margin-top: 30px;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+    table th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    th, td {
+      padding: 16px 15px;
+      text-align: center;
+      border: none;
+    }
+    th {
+      background: linear-gradient(to bottom, #3498db, #2980b9);
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+    th:hover {
+      background: linear-gradient(to bottom, #2980b9, #2573a7);
+    }
+    th::after {
+      content: "↕";
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    tbody tr {
+      transition: background 0.2s ease;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    tbody tr:hover {
+      background-color: #e3f2fd;
+      transform: scale(1.005);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      position: relative;
+      z-index: 2;
+    }
+    tbody td {
+      border-bottom: 1px solid #edf2f7;
+      font-size: 15px;
+      color: #2d3748;
+    }
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #718096;
+      font-size: 14px;
+      padding: 20px;
+    }
+    @media (max-width: 1200px) {
+      .cards-row {
+        flex-direction: column;
+      }
+      .card {
+        width: 100%;
+      }
+    }
+    @media (max-width: 768px) {
+      .filters {
+        flex-direction: column;
+      }
+      .filters > div {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Team Performance Report</h1>
+  <div class="container">
+    <h1>Team Performance Report</h1>
 
-  <div class="filters">
-    <div class="dropdown-container">
-      <button class="dropdown-button" onclick="toggleDropdown()">Select Names</button>
-      <span id="nameCount">All selected</span>
-      <div class="dropdown-menu" id="dropdownMenu"></div>
+    <div class="filters">
+      <div class="dropdown-container">
+        <button class="dropdown-button" onclick="toggleDropdown()">Select Team Members</button>
+        <span id="nameCount">All selected</span>
+        <div class="dropdown-menu" id="dropdownMenu"></div>
+      </div>
+      <div>
+        <label for="monthYear">Select Month and Year</label>
+        <input type="month" id="monthYear" value="">
+      </div>
+      <div>
+        <button onclick="applyFilters()">Apply Filters</button>
+      </div>
     </div>
-    <div>
-      <label for="monthYear">Select Month and Year</label>
-      <input type="month" id="monthYear">
+
+    <div class="cards-row">
+      <div class="card">
+        <h3>Average Working Minutes</h3>
+        <ul id="topAvgWorkingMinutes"></ul>
+      </div>
+      <div class="card">
+        <h3>Overtime</h3>
+        <ul id="topOT"></ul>
+      </div>
+      <div class="card">
+        <h3>Actual Minutes</h3>
+        <ul id="topActualMinutes"></ul>
+      </div>
+      <div class="card">
+        <h3>QC Tool Uses</h3>
+        <ul id="topQCToolUses"></ul>
+      </div>
     </div>
-    <div>
-      <button onclick="applyFilters()">Apply Filters</button>
+
+    <div id="errorBox" style="color:#e74c3c; margin:20px 0 0 0; display:none; text-align:center; font-size:18px;"></div>
+
+    <table id="reportTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Name</th>
+          <th onclick="sortTable(1)">Working Days</th>
+          <th onclick="sortTable(2)">Total Leave</th>
+          <th onclick="sortTable(3)">Avg Minutes</th>
+          <th onclick="sortTable(4)">Total Minutes</th>
+          <th onclick="sortTable(5)">OT</th>
+          <th onclick="sortTable(6)">QC Tool Uses</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <div class="footer">
+      <p>Team Performance Dashboard • Data updated: <span id="updateDate">Loading...</span></p>
     </div>
   </div>
-
-  <div class="cards-row">
-    <div class="card">
-      <h3>Average Working Minutes</h3>
-      <ul id="topAvgWorkingMinutes"></ul>
-    </div>
-    <div class="card">
-      <h3>OT</h3>
-      <ul id="topOT"></ul>
-    </div>
-    <div class="card">
-      <h3>Actual Minutes</h3>
-      <ul id="topActualMinutes"></ul>
-    </div>
-  </div>
-
-  <table id="reportTable">
-    <thead>
-      <tr>
-        <th onclick="sortTable(0)">Name</th>
-        <th onclick="sortTable(1)">Working Day</th>
-        <th onclick="sortTable(2)">Total Leave</th>
-        <th onclick="sortTable(3)">Average Working Minute</th>
-        <th onclick="sortTable(4)">Total Minute</th>
-        <th onclick="sortTable(5)">OT</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 
   <script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=0&single=true&output=csv";
+    const ATTENDANCE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=0&single=true&output=csv';
+    const QC_TOOL_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=79264188&single=true&output=csv';
+    const MAPPING_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=986458321&single=true&output=csv';
+
     let allData = [];
-    let selectedNames = JSON.parse(localStorage.getItem('selectedNames') || '[]');
-    let availableMonths = [];
-    let sortDirection = [true, true, true, true, true, true]; // sort direction for each column
+    let qcToolData = [];
+    let nameEmailMap = {};
+    let selectedNames = [];
+    let sortDirection = [true, true, true, true, true, true, true];
 
-    // Fetch and load the CSV data
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        allData = results.data.filter(row => row["Name"] && row["Date"]);
-        extractAvailableMonths();  // Extract available months and populate the month selector
-        renderDropdown();  // Populate the dropdown menu
-        applyFilters();    // Apply filters after loading the data
+    async function fetchCSVData(url) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const csvData = await response.text();
+        return new Promise((resolve) => {
+          Papa.parse(csvData, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => { resolve(results.data); }
+          });
+        });
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        return [];
       }
-    });
+    }
 
-    // Extract available months and years from the data
-    function extractAvailableMonths() {
-      availableMonths = [...new Set(allData.map(row => {
-        const date = new Date(row["Date"]);
-        const month = date.getMonth() + 1;  // JavaScript months are 0-indexed, so we add 1
-        const year = date.getFullYear();
-        return `${year}-${month < 10 ? '0' + month : month}`;  // Format as "YYYY-MM"
-      }))];
-      
-      const monthSelector = document.getElementById('monthYear');
-      availableMonths.forEach(month => {
-        const option = document.createElement('option');
-        option.value = month;
-        option.textContent = month;
-        monthSelector.appendChild(option);
+    function showError(msg) {
+      document.getElementById('errorBox').style.display = '';
+      document.getElementById('errorBox').textContent = msg;
+      document.getElementById("tableBody").innerHTML = '';
+      ["topAvgWorkingMinutes","topOT","topActualMinutes","topQCToolUses"].forEach(id=>{
+        document.getElementById(id).innerHTML='<li class="name-value"><span class="name">No data available</span></li>';
       });
+      document.getElementById('updateDate').textContent = "Failed to fetch Google Sheet data";
     }
 
-    // Toggle dropdown visibility (open/close) when the "Select Names" button is clicked
-    function toggleDropdown() {
-      const menu = document.getElementById('dropdownMenu');
-      if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-      } else {
-        menu.style.display = 'none';
+    function clearError() {
+      document.getElementById('errorBox').style.display = 'none';
+    }
+
+    async function initApp() {
+      document.getElementById('updateDate').textContent = 'Loading data...';
+      clearError();
+      const [attendanceData, qcData, mappingData] = await Promise.all([
+        fetchCSVData(ATTENDANCE_SHEET_URL),
+        fetchCSVData(QC_TOOL_SHEET_URL),
+        fetchCSVData(MAPPING_SHEET_URL)
+      ]);
+      if (!attendanceData.length) {
+        showError('Failed to fetch attendance data.');
+        return;
       }
+      if (!qcData.length) {
+        showError('Failed to fetch QC tool data.');
+        return;
+      }
+      if (!mappingData.length) {
+        showError('Failed to fetch mapping data.');
+        return;
+      }
+      clearError();
+
+      allData = attendanceData;
+      qcToolData = qcData;
+      nameEmailMap = {};
+      mappingData.forEach(row => {
+        if (row.Name && row.Email) {
+          nameEmailMap[row.Name] = row.Email.toLowerCase();
+        }
+      });
+      selectedNames = [...new Set(allData.map(r => r.Name).filter(Boolean))];
+      const currentMonth = new Date().toISOString().slice(0,7);
+      document.getElementById('monthYear').value = currentMonth;
+      renderDropdown();
+      applyFilters();
+      document.getElementById('updateDate').textContent = new Date().toLocaleString();
     }
 
-    // Render the dropdown menu with names
+    function toggleDropdown() {
+      document.querySelector('.dropdown-container').classList.toggle('active');
+    }
+
     function renderDropdown() {
       const container = document.getElementById('dropdownMenu');
       container.innerHTML = '';
-      
-      // Create Select All Checkbox
       const selectAllLabel = document.createElement('label');
-      selectAllLabel.innerHTML = `<input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"> Select All`;
+      selectAllLabel.innerHTML = `<input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" checked> Select All`;
       container.appendChild(selectAllLabel);
-      
-      // Get the unique names from the data and sort them
-      const names = [...new Set(allData.map(row => row["Name"]))].sort();
-      
-      // Create individual name checkboxes
+      const names = [...new Set(allData.map(r=>r.Name).filter(Boolean))].sort();
       names.forEach(name => {
         const label = document.createElement('label');
         label.innerHTML = `<input type="checkbox" value="${name}" ${selectedNames.includes(name) ? 'checked' : ''} onchange="updateSelection()"> ${name}`;
         container.appendChild(label);
       });
-
-      // Update the "Select All" checkbox based on the selected names
-      updateSelectAllCheckbox();
-    }
-
-    // Update "Select All" checkbox based on selected names
-    function updateSelectAllCheckbox() {
-      const selectAllCheckbox = document.getElementById('selectAll');
-      const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
-      
-      // Check if all checkboxes are selected
-      const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-      selectAllCheckbox.checked = allSelected;
-    }
-
-    // Toggle the selection of all checkboxes when "Select All" is clicked
-    function toggleSelectAll(selectAllCheckbox) {
-      const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
-      checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAllCheckbox.checked;
-      });
-      updateSelection();  // Update the selected names list when "Select All" is toggled
-    }
-
-    // Update selected names in localStorage and update the count
-    function updateSelection() {
-      const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
-      selectedNames = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
-      localStorage.setItem('selectedNames', JSON.stringify(selectedNames));
       updateSelectedCount();
     }
 
-    // Update the count of selected names
-    function updateSelectedCount() {
-      document.getElementById("nameCount").textContent = `${selectedNames.length} selected`;
+    function updateSelectAllCheckbox() {
+      const selectAllCheckbox = document.getElementById('selectAll');
+      const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
+      selectAllCheckbox.checked = Array.from(checkboxes).every(cb => cb.checked);
     }
 
-    // Apply filters to the data and update the table and cards
+    function toggleSelectAll(selectAllCheckbox) {
+      const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
+      checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+      updateSelection();
+    }
+
+    function updateSelection() {
+      const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
+      selectedNames = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+      updateSelectedCount();
+      updateSelectAllCheckbox();
+    }
+
+    function updateSelectedCount() {
+      const total = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)').length;
+      document.getElementById('nameCount').textContent = selectedNames.length === total ? 'All selected' : `${selectedNames.length} of ${total} selected`;
+    }
+
+    function getQCToolCount(name, filterMonth) {
+      const email = nameEmailMap[name];
+      if (!email) return 0;
+      return qcToolData.reduce((sum, row) => {
+        if (row.email_id && row.email_id.toLowerCase() === email) {
+          if (filterMonth && row.date) {
+            const d = new Date(row.date);
+            if (isNaN(d.getTime())) return sum;
+            const m = d.getMonth() + 1;
+            const ms = m < 10 ? '0' + m : m;
+            const ym = d.getFullYear() + '-' + ms;
+            if (ym !== filterMonth) return sum;
+          }
+          const val = parseFloat(row.qc_tool);
+          return sum + (isNaN(val) ? 0 : val);
+        }
+        return sum;
+      }, 0);
+    }
+
     function applyFilters() {
-      const selectedNamesFilter = selectedNames.length > 0 ? selectedNames : allData.map(row => row["Name"]);
-      const selectedMonth = document.getElementById('monthYear').value;  // Get selected month-year
-
+      clearError();
+      const selectedMonth = document.getElementById('monthYear').value;
+      const namesFilter = selectedNames.length ? selectedNames : [...new Set(allData.map(r=>r.Name).filter(Boolean))];
       const filtered = allData.filter(row => {
-        const nameMatch = selectedNamesFilter.includes(row["Name"]);
-        
-        // Check if the Date is in the selected Month and Year
-        const rowDate = new Date(row["Date"]);
-        const monthMatch = `${rowDate.getFullYear()}-${(rowDate.getMonth() + 1).toString().padStart(2, '0')}` === selectedMonth;
-
-        return nameMatch && monthMatch;
+        if(!namesFilter.includes(row.Name)) return false;
+        if(selectedMonth){
+          const d = new Date(row.Date);
+          if(isNaN(d)) return false;
+          const m = d.getMonth()+1;
+          const ms = m<10?'0'+m:m;
+          if (d.getFullYear()+'-'+ms !== selectedMonth) return false;
+        }
+        return true;
       });
-
+      if(filtered.length === 0){
+        showError('No data for selected filters.');
+        return;
+      }
       const grouped = {};
       filtered.forEach(row => {
-        const name = row["Name"];
-        const workingStatus = row["P"];
-        const minutesValue = row["Working Minutes"]; // Correct column name for working minutes
-        const ot = parseFloat(row["OT"] || 0);
-        const leaveAbsentStatus = row["Leave"] || row["Absent"];
-
-        if (!grouped[name]) {
+        const name = row.Name;
+        if(!name) return;
+        if(!grouped[name]) {
           grouped[name] = {
-            workingDays: 0,
-            totalLeave: 0,
-            totalMinutes: 0,
-            numericCount: 0, // Count of valid numeric data
-            otSum: 0,
-            avgWorkingMinutes: 0 // To store the calculated average
+            workingDays:0,
+            totalLeave:0,
+            totalMinutes:0,
+            numericCount:0,
+            otSum:0,
+            avgWorkingMinutes:0,
+            qcToolCount:getQCToolCount(name, selectedMonth)
           };
         }
-
-        // Working Day count (P)
-        if (workingStatus === "P") {
-          grouped[name].workingDays++;
+        if(row.P === 'P') grouped[name].workingDays++;
+        if(row.Leave === 'Leave' || row.Absent === 'Absent') grouped[name].totalLeave++;
+        const mins = parseFloat(row['Working Minutes']);
+        if(!isNaN(mins)){
+          grouped[name].totalMinutes += mins;
+          grouped[name].numericCount++;
         }
-
-        // Count Leave and Absent status for Total Leave
-        if (leaveAbsentStatus === "Leave" || leaveAbsentStatus === "Absent") {
-          grouped[name].totalLeave++;
-        }
-
-        // Working Minute calculation (only numeric data)
-        if (!isNaN(parseFloat(minutesValue))) {
-          grouped[name].totalMinutes += parseFloat(minutesValue);
-          grouped[name].numericCount++; // Count the valid numeric entries
-        }
-
-        // OT Sum from column "OT"
-        if (!isNaN(ot)) grouped[name].otSum += ot;
+        const ot = parseFloat(row.OT);
+        if(!isNaN(ot)) grouped[name].otSum += ot;
       });
-
-      // Calculate Average Working Minutes for each user
-      for (const name in grouped) {
+      for(const name in grouped) {
         const g = grouped[name];
-        g.avgWorkingMinutes = g.numericCount ? (g.totalMinutes / g.numericCount).toFixed(2) : "0"; // Calculate average
+        g.avgWorkingMinutes = g.numericCount ? g.totalMinutes/g.numericCount : 0;
       }
 
-      const tbody = document.querySelector("#reportTable tbody");
-      tbody.innerHTML = "";
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
 
-      // Display the top 10 for Average Working Minutes
       const topAvgWorkingMinutes = getTopTen(grouped, 'avgWorkingMinutes');
       const topOT = getTopTen(grouped, 'otSum');
       const topActualMinutes = getTopTen(grouped, 'totalMinutes');
+      const topQCToolUses = getTopTen(grouped, 'qcToolCount');
 
-      // Update the cards with the top 10 results
       updateTopCards('topAvgWorkingMinutes', topAvgWorkingMinutes);
       updateTopCards('topOT', topOT);
       updateTopCards('topActualMinutes', topActualMinutes);
+      updateTopCards('topQCToolUses', topQCToolUses);
 
-      // Add data to the table
-      for (const name in grouped) {
+      for(const name in grouped) {
         const g = grouped[name];
-        const avg = g.avgWorkingMinutes;
-        const totalMinutes = g.totalMinutes.toFixed(2);
-        const otSum = Math.round(g.otSum);
+        const avg = g.avgWorkingMinutes.toFixed(2);
+        const total = g.totalMinutes.toFixed(2);
+        const ot = Math.round(g.otSum);
+        const qcCount = g.qcToolCount.toFixed(2);
 
-        tbody.innerHTML += `
-          <tr>
-            <td>${name}</td>
-            <td>${g.workingDays}</td>
-            <td>${g.totalLeave}</td>
-            <td>${avg}</td> <!-- Average Working Minute -->
-            <td>${totalMinutes}</td>
-            <td>${otSum}</td>
-          </tr>
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${name}</td>
+          <td>${g.workingDays}</td>
+          <td>${g.totalLeave}</td>
+          <td>${avg}</td>
+          <td>${total}</td>
+          <td>${ot}</td>
+          <td>${qcCount}</td>
         `;
+        tbody.appendChild(row);
       }
     }
 
-    // Get top 10 values from grouped data based on specified field
-    function getTopTen(grouped, field) {
+    function getTopTen(grouped, field){
       return Object.keys(grouped)
-        .map(name => {
-          const g = grouped[name];
-          return { name, value: parseFloat(g[field]) || 0 }; // Get value for the field
-        })
-        .sort((a, b) => b.value - a.value) // Sort in descending order
-        .slice(0, 10); // Only show top 10 based on value
+        .map(name => ({name, value: parseFloat(grouped[name][field]) || 0}))
+        .sort((a,b)=>b.value - a.value)
+        .slice(0,10);
     }
 
-    // Update top cards with the top 10 results
-    function updateTopCards(cardId, data) {
+    function updateTopCards(cardId, data){
       const card = document.getElementById(cardId);
       card.innerHTML = '';
+      if(!data.length){
+        card.innerHTML = '<li class="name-value"><span class="name">No data available</span></li>';
+        return;
+      }
       data.forEach(item => {
-        card.innerHTML += `<li class="name-value"><span class="name">${item.name}</span><span class="value">${item.value.toFixed(2)}</span></li>`;
+        const li = document.createElement('li');
+        li.className = 'name-value';
+        li.innerHTML = `<span class="name">${item.name}</span><span class="value">${item.value.toFixed(2)}</span>`;
+        card.appendChild(li);
       });
     }
 
-    // Sort table based on column index
-    function sortTable(columnIndex) {
-      const rows = Array.from(document.querySelector("#reportTable tbody").rows);
-      const isAscending = sortDirection[columnIndex];
-      sortDirection[columnIndex] = !isAscending;
+    function sortTable(index) {
+      const tbody = document.getElementById('tableBody');
+      const rows = Array.from(tbody.rows);
+      const ascending = sortDirection[index];
+      sortDirection[index] = !ascending;
 
-      rows.sort((rowA, rowB) => {
-        const cellA = rowA.cells[columnIndex].textContent;
-        const cellB = rowB.cells[columnIndex].textContent;
-
-        if (isNaN(cellA) || isNaN(cellB)) {
-          return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
-        } else {
-          return isAscending ? parseFloat(cellA) - parseFloat(cellB) : parseFloat(cellB) - parseFloat(cellA);
-        }
+      rows.sort((a,b) => {
+        const valA = a.cells[index].textContent.trim();
+        const valB = b.cells[index].textContent.trim();
+        const numA = parseFloat(valA);
+        const numB = parseFloat(valB);
+        if(isNaN(numA) || isNaN(numB))
+          return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        return ascending ? numA - numB : numB - numA;
       });
 
-      document.querySelector("#reportTable tbody").append(...rows);
+      tbody.innerHTML = '';
+      rows.forEach(r => tbody.appendChild(r));
     }
 
-    // Initialize dropdown as hidden
-    document.addEventListener("DOMContentLoaded", function () {
-      document.getElementById('dropdownMenu').style.display = 'none';
-    });
-
-    // Initial call to render the dropdown menu
-    renderDropdown();
+    document.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
+
+
