@@ -295,6 +295,10 @@
             border-bottom: none;
             margin-bottom: 0;
         }
+        /* Custom class for highlighting based on leave count */
+        .light-red {
+            background-color: #fce4e4; /* A light red color */
+        }
         table {
             width: 100%;
             border-collapse: separate;
@@ -458,6 +462,8 @@
     </div>
 
     <script>
+        console.log("Script loaded successfully.");
+        
         const ATTENDANCE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=0&single=true&output=csv';
         const QC_TOOL_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=79264188&single=true&output=csv';
         const MAPPING_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=986458321&single=true&output=csv';
@@ -506,6 +512,7 @@
         }
 
         function showError(msg) {
+            console.error("Displaying error:", msg);
             document.getElementById('errorBox').style.display = 'block';
             document.getElementById('errorBox').textContent = msg;
             document.getElementById("tableBody").innerHTML = '<tr><td colspan="8" style="text-align:center;">' + msg + '</td></tr>';
@@ -553,6 +560,7 @@
         async function initApp() {
             document.getElementById('updateDate').textContent = 'Loading data...';
             clearError();
+            console.log("Initializing application...");
 
             try {
                 const [attendanceData, qcData, mappingData] = await Promise.all([
@@ -592,6 +600,7 @@
                 renderDropdown();
                 applyFilters();
                 document.getElementById('updateDate').textContent = new Date().toLocaleString();
+                console.log("Application initialization complete.");
             } catch (e) {
                 console.error("Initialization failed:", e);
                 showError("Initialization failed: " + e.message);
@@ -686,6 +695,7 @@
         function applyFilters() {
             try {
                 clearError();
+                console.log("Applying filters...");
                 const selectedMonth = document.getElementById('monthYear').value;
                 const namesFilter = selectedNames.length ? selectedNames : [...new Set(allData.map(r => r.Name).filter(Boolean))];
 
@@ -769,7 +779,7 @@
 
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
-
+                console.log("Rendering table...");
                 for (const name in groupedData) {
                     const g = groupedData[name];
                     const totalAdjusted = Math.round(g.totalAdjustedMinutes);
@@ -810,6 +820,7 @@
 
                     tbody.appendChild(row);
                 }
+                console.log("Filters applied successfully.");
             } catch (e) {
                 console.error("Error in applyFilters:", e);
                 showError("An error occurred while applying filters: " + e.message);
@@ -843,6 +854,13 @@
             data.forEach(item => {
                 const li = document.createElement('li');
                 li.className = 'name-value';
+                
+                // Add the light-red class if the card is for Average Working Minutes
+                // and the total leave count is greater than 3.
+                if (cardId === 'topAvgWorkingMinutes' && item.fullData && item.fullData.totalLeave > 3) {
+                    li.classList.add('light-red');
+                }
+
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'name';
                 nameSpan.textContent = item.name;
@@ -903,6 +921,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM content loaded. Starting app initialization.");
             initApp();
             document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
         });
