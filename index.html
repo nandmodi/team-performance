@@ -754,12 +754,8 @@
                     }
                 }
                 
-                const filteredGroupedForAvgMinutes = Object.keys(groupedData).reduce((obj, key) => {
-                    if (groupedData[key].totalLeave <= 3) {
-                        obj[key] = groupedData[key];
-                    }
-                    return obj;
-                }, {});
+                // The condition `groupedData[key].totalLeave <= 3` is removed.
+                const filteredGroupedForAvgMinutes = groupedData;
 
                 const topTotalMinutesWithoutOT = getTopTen(groupedData, 'totalAdjustedMinutes');
                 const topOT = getTopTen(groupedData, 'otSum');
@@ -859,6 +855,10 @@
 
                 if (cardId === 'topAvgWorkingMinutes') {
                     primaryValue = item.value.toFixed(2);
+                    // Add total leave to this block as requested
+                    if (item.fullData && item.fullData.totalLeave !== undefined) {
+                        secondaryText = ' (' + item.fullData.totalLeave + ')';
+                    }
                 } else if (cardId === 'topOT') {
                     primaryValue = item.value.toFixed(2);
                     if (item.fullData && item.fullData.avgAdjustedMinutes !== undefined) {
