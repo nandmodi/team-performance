@@ -468,6 +468,9 @@
         const QC_TOOL_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=79264188&single=true&output=csv';
         const MAPPING_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn-Rg3Sc617Qnm7C0tlc26xfIdGmAZn6FTb7ntuyyhqqP5DETr0f2U_mxFOff2LWNQ8TkKlmKgB03b/pub?gid=986458321&single=true&output=csv';
 
+        // Define names that should be excluded from all reports and lists.
+        const EXCLUDED_NAMES = ["Ajay Devrani"];
+
         let allData = [];
         let qcToolData = [];
         let nameEmailMap = {};
@@ -477,6 +480,7 @@
         let groupedData = {};
 
         async function fetchCSVData(url, name) {
+// ... (omitted fetchCSVData)
             console.log(`Attempting to fetch ${name} data from: ${url}`);
             try {
                 const response = await fetch(url);
@@ -512,6 +516,7 @@
         }
 
         function showError(msg) {
+// ... (omitted showError)
             console.error("Displaying error:", msg);
             document.getElementById('errorBox').style.display = 'block';
             document.getElementById('errorBox').textContent = msg;
@@ -523,10 +528,12 @@
         }
 
         function clearError() {
+// ... (omitted clearError)
             document.getElementById('errorBox').style.display = 'none';
         }
 
         function parseDateAsUTC(dateStr) {
+// ... (omitted parseDateAsUTC)
             if (!dateStr) return null;
             let d = null;
             try {
@@ -579,12 +586,17 @@
                     throw new Error('Mapping data is empty. Cannot link names and emails.');
                 }
 
-                allData = attendanceData;
-                qcToolData = qcData;
+                // Filter attendance data to exclude specified names
+                allData = attendanceData.filter(row => !EXCLUDED_NAMES.includes(row.Name));
+                qcToolData = qcData; // Keep QC data as-is, as filtering happens implicitly via nameEmailMap/getQcMetrics
+                
                 nameEmailMap = {};
                 wfhStatusMap = {};
                 mappingData.forEach(row => {
                     if (row.Name && row.Email) {
+                        // Skip mapping excluded names
+                        if (EXCLUDED_NAMES.includes(row.Name)) return; 
+
                         nameEmailMap[row.Name] = row.Email.toLowerCase();
                         const parsedWfhDate = parseDateAsUTC(row['Wfh-date']);
                         wfhStatusMap[row.Name] = {
@@ -594,7 +606,10 @@
                     }
                 });
                 
-                selectedNames = [...new Set(allData.map(r => r.Name).filter(Boolean))];
+                // Populate selectedNames only with names available in the filtered data
+                const availableNames = allData.map(r => r.Name).filter(Boolean);
+                selectedNames = [...new Set(availableNames)];
+
                 const currentMonth = new Date().toISOString().slice(0, 7);
                 document.getElementById('monthYear').value = currentMonth;
                 renderDropdown();
@@ -608,6 +623,7 @@
         }
 
         function toggleDropdown() {
+// ... (omitted toggleDropdown)
             document.querySelector('.dropdown-container').classList.toggle('active');
         }
 
@@ -624,6 +640,7 @@
             selectAllLabel.appendChild(document.createTextNode(' Select All'));
             container.appendChild(selectAllLabel);
 
+            // Names are now derived from the filtered allData, so Ajay Devrani won't be here.
             const names = [...new Set(allData.map(r => r.Name).filter(Boolean))].sort();
             names.forEach(name => {
                 const label = document.createElement('label');
@@ -640,18 +657,21 @@
         }
 
         function updateSelectAllCheckbox() {
+// ... (omitted updateSelectAllCheckbox)
             const selectAllCheckbox = document.getElementById('selectAll');
             const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
             selectAllCheckbox.checked = Array.from(checkboxes).every(cb => cb.checked);
         }
 
         function toggleSelectAll(selectAllCheckbox) {
+// ... (omitted toggleSelectAll)
             const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
             checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
             updateSelection();
         }
 
         function updateSelection() {
+// ... (omitted updateSelection)
             const checkboxes = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)');
             selectedNames = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
             updateSelectedCount();
@@ -659,11 +679,13 @@
         }
 
         function updateSelectedCount() {
+// ... (omitted updateSelectedCount)
             const total = document.querySelectorAll('#dropdownMenu input[type="checkbox"]:not(#selectAll)').length;
             document.getElementById('nameCount').textContent = selectedNames.length === total ? 'All selected' : `${selectedNames.length} of ${total} selected`;
         }
 
         function getQcMetrics(name, filterMonth) {
+// ... (omitted getQcMetrics)
             const email = nameEmailMap[name];
             if (!email) return { qcToolCount: 0, issuePercentage: 0 };
             
@@ -693,6 +715,7 @@
         }
 
         function applyFilters() {
+// ... (omitted applyFilters)
             try {
                 clearError();
                 console.log("Applying filters...");
@@ -702,7 +725,8 @@
                 groupedData = {};
                 allData.forEach(row => {
                     const name = row.Name;
-                    if (!name || !namesFilter.includes(name)) return;
+                    // The primary data (allData) is already filtered, but we check against the selected dropdown names too.
+                    if (!name || !namesFilter.includes(name)) return; 
                     const rowDateUTC = parseDateAsUTC(row.Date);
                     if (!rowDateUTC) return;
                     if (selectedMonth) {
@@ -828,6 +852,7 @@
         }
 
         function getTopTen(grouped, field) {
+// ... (omitted getTopTen)
             return Object.keys(grouped)
                 .map(name => ({
                     name,
@@ -839,6 +864,7 @@
         }
 
         function updateTopCards(cardId, data) {
+// ... (omitted updateTopCards)
             const card = document.getElementById(cardId);
             card.innerHTML = '';
             if (!data || data.length === 0) {
@@ -903,6 +929,7 @@
         }
 
         function sortTable(index) {
+// ... (omitted sortTable)
             const tbody = document.getElementById('tableBody');
             const rows = Array.from(tbody.rows);
             const ascending = sortDirection[index];
